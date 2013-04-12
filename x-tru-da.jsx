@@ -32,10 +32,9 @@ run_x_true_da(this);
 
 // this is global
 xtruda =  {
-  setting1 : false,
-  setting2 : false,
-  myArray :[],
-  counter : 0
+    'depth':50,
+    'shadow':false,
+    'foldername':'xtruded-stuff'
 };
 
 
@@ -52,18 +51,30 @@ if ((win !== null) && (win instanceof Window)) {
     if (win !== null) {
 
         var H = 25; // the height
-        var W1 = 30; // the width
+        var W = 30; // the width
         var G = 5; // the gutter
         var x = G;
         var y = G;
         // var yuioff = G; // and some offset
-
-        win.check_box = win.add('checkbox',[x,y,x+W1*2,y + H],'precompose?');
-        win.check_box.value = xtruda.setting1;
-        win.xtrude_button = win.add('button', [x + W1*5+ G,y,x + W1*6,y + H], 'Up');
+        win.depth_etxt = win.add('edittext',[x,y,x+W*2,y+H],String(xtruda.depth));
+        x+=W*2+G;
+        win.foldername_etxt = win.add('edittext',[x,y,x+W*6,y+H],xtruda.foldername);
+        x+=W*4+G;
+        y+=H;
+        x=G;
+        win.check_box = win.add('checkbox',[x,y,x+W*3,y + H],'precomp?');
+        win.check_box.value = true;
+        x+=W*3+G;
+        win.xtrude_button = win.add('button', [x,y,x+W*5,y + H], 'X-Trude-It');
 
         win.xtrude_button.onClick = function () {
             xtrude_it();
+        };
+        win.depth_etxt.onChange = function  () {
+            xtruda.depth = parseInt(this.text,10);
+        };
+        win.foldername_etxt.onChange = function  () {
+            xtruda.foldername = this.text;
         };
 
 
@@ -74,7 +85,84 @@ if ((win !== null) && (win instanceof Window)) {
 
 function xtrude_it(){
 // "in function main. From here on it is a straight run"
-    }
- } // close run_x_true_da
 
+    var curComp = app.project.activeItem;
+   if (!curComp || !(curComp instanceof CompItem)){
+        alert('please select a comp');
+        return;
+    }
+
+    if(curComp.selectedLayers.length < 1){
+        alert('Please select at least one layer');
+    return;
+        }
+    app.beginUndoGroup('X-True-Da');
+
+        var xtrudefolder = app.project.items.addFolder('extruded-thingy');
+    for (var i = 0; i < curComp.selectedLayers.length;i++){
+        var layer = curComp.selectedLayers[i];
+        layer_extruder(layer, xtrudefolder);
+    }
+    app.endUndoGroup();
+
+    }
+
+function layer_extruder(layer, folder){
+
+var extruded_text = null;
+var arrOLayers = [];
+layer.threeDLayer = true;
+// layer.collapseTransformation = true;
+//layer.property("ADBE Material Options Group").property("ADBE Casts Shadows").setValue(1);
+arrOLayers.push(layer);
+    for(var z = 1; z < xtruda.depth;z++){
+
+        var dupe = arrOLayers[z-1].duplicate();
+        dupe.moveToEnd();
+        var x  = dupe.transform.position.value[0];
+        var y  = dupe.transform.position.value[1];
+        dupe.threeDLayer = true;
+        dupe.transform.position.setValue([x,y,z]);
+        //dupe.property("ADBE Material Options Group").property("ADBE Casts Shadows").setValue(1);
+        // dupe.parent = arrOLayers[0];
+        if((z == xtruda.depth - 1) &&(xtruda.shadow === true)){
+            dupe.property("ADBE Material Options Group").property("ADBE Casts Shadows").setValue(1);
+        }
+        arrOLayers.push(dupe);
+
+    }// close z
+
+extruded_text = precomper(
+    arrOLayers,
+    layer.containingComp,
+    'new comp',
+    folder);
+extruded_text.threeDLayer = true;
+extruded_text.collapseTransformation = true;
+
+
+return extruded_text;
+}
+
+/*
+my personal precomposer
+
+*/
+function precomper(arrOLayers,curComp, name, folder){
+
+var layerIndices = []; // precompose takes layer inidcies
+// loop thru a list of layer
+for(var l = 0;l < arrOLayers.length;l++){
+// and push their index into an array
+    layerIndices[layerIndices.length] = arrOLayers[l].index;
+  }
+
+// now precompose the result       
+var newComp = curComp.layers.precompose(layerIndices, name, true );
+newComp.parentFolder = folder;
+// it is the selected layer
+var preCompedLayer = curComp.selectedLayers[0];
+return preCompedLayer;
+}
+ } // close run_x_true_da
 // }
