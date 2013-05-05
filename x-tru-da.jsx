@@ -97,10 +97,13 @@ function xtrude_it(){
     return;
         }
     app.beginUndoGroup('X-True-Da');
-
-        var xtrudefolder = app.project.items.addFolder('extruded-thingy');
-    for (var i = 0; i < curComp.selectedLayers.length;i++){
-        var layer = curComp.selectedLayers[i];
+    var layers_to_extrude = [];
+    for(var j = 0; j < curComp.selectedLayers.length;j++){
+        layers_to_extrude.push(curComp.selectedLayers[j]);
+    }
+        var xtrudefolder = app.project.items.addFolder(xtruda.foldername);
+    for (var i = 0; i < layers_to_extrude.length;i++){
+        var layer = layers_to_extrude[i];
         layer_extruder(layer, xtrudefolder);
     }
     app.endUndoGroup();
@@ -135,7 +138,7 @@ arrOLayers.push(layer);
 extruded_text = precomper(
     arrOLayers,
     layer.containingComp,
-    'new comp',
+    layer.name +' precomp',
     folder);
 extruded_text.threeDLayer = true;
 extruded_text.collapseTransformation = true;
