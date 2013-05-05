@@ -56,11 +56,11 @@ if ((win !== null) && (win instanceof Window)) {
         var x = G;
         var y = G;
         // var yuioff = G; // and some offset
-        win.depth_etxt = win.add('edittext',[x,y,x+W*2,y+H],String(xtruda.depth));
-        x+=W*2+G;
-        win.foldername_etxt = win.add('edittext',[x,y,x+W*6,y+H],xtruda.foldername);
+        win.depth_etxt = win.add('edittext',[x,y,x+W*3,y+H],String(xtruda.depth));
+        x+=W*3+G;
+        win.foldername_etxt = win.add('edittext',[x,y,x+W*5,y+H],xtruda.foldername);
         x+=W*4+G;
-        y+=H;
+        y+=H+G;
         x=G;
         win.check_box = win.add('checkbox',[x,y,x+W*3,y + H],'precomp?');
         win.check_box.value = true;
